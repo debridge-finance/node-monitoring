@@ -1,10 +1,28 @@
 const Web3 = require('web3');
 const axios = require('axios');
 const bunyan = require('bunyan');
+const SentryStream = require('bunyan-sentry-stream').SentryStream;
+const raven = require('raven');
+
 
 const config = require('./config');
 
-const logger = bunyan.createLogger({ name: config.serverName });
+const sentryClient = new raven.Client(config.sentryDsn, { /* EXTRAS */ });
+const loggerStreams = [
+    {
+        level: 'debug',
+        stream: process.stdout
+    },
+    {
+        level: 'error',
+        type: 'raw',
+        stream: new SentryStream(sentryClient)
+    }
+];
+const logger = bunyan.createLogger({
+    name: config.serverName,
+    streams: loggerStreams
+});
 
 
 const downtimeStartedAt = new Map();
@@ -53,7 +71,10 @@ async function validate(network) {
 
 async function start () {
     for (let network of config.networks) {
-        network.logger = bunyan.createLogger({ name: network.name });
+        network.logger = bunyan.createLogger({
+            name: network.name,
+            streams: loggerStreams
+        });
 
         lockStorage.set(network.name, false);
         setInterval(async () => {

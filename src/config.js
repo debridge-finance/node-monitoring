@@ -2,6 +2,7 @@ module.exports = {
     interval: 5 * 1000, //5s
     maxDowntime: 10 * 1000, //10s
     serverName: 'App',
+    sentryDsn: '',
     alert: {
         telegram: {
             token: '',
