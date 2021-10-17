@@ -1,0 +1,23 @@
+{
+  "name": "monitoring",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/debridge-finance/node-monitoring.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/debridge-finance/node-monitoring/issues"
+  },
+  "homepage": "https://github.com/debridge-finance/node-monitoring#readme",
+  "dependencies": {
+    "axios": "0.23.0",
+    "web3": "1.6.0"
+  }
+}
