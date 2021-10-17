@@ -21,8 +21,8 @@ async function start () {
 
         console.log(`Checking ${network.name} is started`);
 
-        const web3Local = new Web3(network.local);
-        const web3Remote = new Web3(network.remote);
+        const web3Local = new Web3(network.localRPC);
+        const web3Remote = new Web3(network.remoteRPC);
 
         const lastLocalBlock = await web3Local.eth.getBlockNumber();
         const lastRemoteBlock = await web3Remote.eth.getBlockNumber();
@@ -35,7 +35,7 @@ async function start () {
                 downtimeStartedAt.set(network.name, Date.now());
                 console.log(`Start downtime ${network.name} : ${downtimeStartedAt.get(network.name)}`);
             } else if (Date.now() - downtimeStartedAt.get(network.name) > config.maxDowntime) {
-                const message = `${network.name} ${network.local} Parser is ${realDiff} behid. Parser block ${lastLocalBlock}; node block ${lastRemoteBlock}`;
+                const message = `[${config.serverName}] ${network.name} ${network.localRPC} Parser is ${realDiff} behid. Parser block ${lastLocalBlock}; node block ${lastRemoteBlock}`;
                 console.error(message);
                 await alert(message);
                 downtimeStartedAt.delete(network.name);
@@ -44,7 +44,7 @@ async function start () {
             downtimeStartedAt.delete(network.name);
         }
 
-        console.log(`Checking ${network.name} is finished (diff ${realDiff})`);
+        console.log(`Checking ${network.name} is finished (diff ${realDiff}) localLastBlock = ${lastLocalBlock} lastRemoteBlock = ${lastRemoteBlock}`);
     }
 }
 
