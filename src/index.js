@@ -51,6 +51,7 @@ async function start () {
 let isWorking = false;
 setInterval(async () => {
     if (isWorking) {
+        console.log('Process is working now')
         return;
     }
     try {
