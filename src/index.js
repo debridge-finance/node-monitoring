@@ -38,8 +38,11 @@ async function start () {
                 const message = `${network.name} ${network.local} Parser is ${realDiff} behid. Parser block ${lastLocalBlock}; node block ${lastRemoteBlock}`;
                 console.error(message);
                 await alert(message);
-                downtimeStartedAt.delete(network.name);
             }
+        }
+
+        if (downtimeStartedAt.has(network.name) && Date.now() - downtimeStartedAt.get(network.name) > config.maxDowntime) {
+            downtimeStartedAt.delete(network.name);
         }
 
         console.log(`Checking ${network.name} is finished (diff ${realDiff})`);
