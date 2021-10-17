@@ -34,7 +34,7 @@ async function start () {
             if (!downtimeStartedAt.has(network.name)){
                 downtimeStartedAt.set(network.name, Date.now());
                 console.log(`Start downtime ${network.name} : ${downtimeStartedAt.get(network.name)}`);
-            } else if (downtimeStartedAt.has(network.name) && Date.now() - downtimeStartedAt.get(network.name) > config.maxDowntime) {
+            } else if (Date.now() - downtimeStartedAt.get(network.name) > config.maxDowntime) {
                 const message = `${network.name} ${network.local} Parser is ${realDiff} behid. Parser block ${lastLocalBlock}; node block ${lastRemoteBlock}`;
                 console.error(message);
                 await alert(message);
