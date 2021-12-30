@@ -58,18 +58,19 @@ async function validate(network) {
 }
 
 async function backoff (func, retries_number, delay = 1000) {
-    let result = 0;
-    try {
-        logger.info(`Try to exec function "${func}" with ${retries_number} retries and ${delay}ms delay`);
-        result = await func;
-    } catch (e) {
-        if (retries_number > 1) {
-            await wait(delay);
-            result = await backoff(func,retries_number-1, delay * 2);
-        } else {
-            logger.error(`Error retries did not help with error: ${e}`);
+    let actualDelay = delay;
+
+    for (let i = 0; i < retries_number; i++) {
+        logger.info(`Try to exec function with ${i+1}/${retries_number} retries and ${delay}ms delay`);
+        try {
+            return await func();
+        } catch (e) {
+            await wait(actualDelay);
+            actualDelay *= 2;
+            logger.error(`Error in backof execution: ${e}`);
         }
     }
+    logger.error(`Error retries did not help with error`);
     return result;
 }
 
