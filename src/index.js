@@ -10,6 +10,12 @@ const logger = bunyan.createLogger({ name: config.serverName });
 const downtimeStartedAt = new Map();
 const lockStorage = new Map();
 
+function wait(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 async function alert(text) {
     for (const id of config.alert.telegram.chatIds) {
         const url = `https://api.telegram.org/bot${config.alert.telegram.token}/sendMessage?chat_id=${id}&text=${text}`;
