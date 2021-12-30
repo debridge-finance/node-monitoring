@@ -17,8 +17,8 @@
   },
   "homepage": "https://github.com/debridge-finance/node-monitoring#readme",
   "dependencies": {
-    "axios": "0.23.0",
+    "axios": "0.24.0",
     "bunyan": "1.8.15",
-    "web3": "1.6.0"
+    "web3": "1.6.1"
   }
 }
