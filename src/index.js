@@ -34,8 +34,8 @@ async function validate(network) {
     const web3Local = new Web3(network.localRPC);
     const web3Remote = new Web3(network.remoteRPC);
 
-    const lastLocalBlock = await backoff(web3Local.eth.getBlockNumber(), 8);
-    const lastRemoteBlock = await backoff(web3Remote.eth.getBlockNumber(), 8);
+    const lastLocalBlock = await backoff(web3Local.eth.getBlockNumber, 8);
+    const lastRemoteBlock = await backoff(web3Remote.eth.getBlockNumber, 8);
 
     const realDiff = Math.abs(lastLocalBlock - lastRemoteBlock);
 
