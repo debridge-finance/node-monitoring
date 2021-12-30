@@ -60,6 +60,7 @@ async function validate(network) {
 async function backoff (func, retries_number, delay = 1000) {
     let result = 0;
     try {
+        logger.info(`Try to exec function "${func}" with ${retries_number} retries and ${delay}ms delay`);
         result = await func;
     } catch (e) {
         if (retries_number > 1) {
