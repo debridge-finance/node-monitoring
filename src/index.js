@@ -28,12 +28,12 @@ async function validate(network) {
     const web3Local = new Web3(network.localRPC);
     const web3Remote = new Web3(network.remoteRPC);
 
-    const lastLocalBlock = await web3Local.eth.getBlockNumber();
-    const lastRemoteBlock = await web3Remote.eth.getBlockNumber();
+    const lastLocalBlock = await backoff(web3Local.eth.getBlockNumber(), 8);
+    const lastRemoteBlock = await backoff(web3Remote.eth.getBlockNumber(), 8);
 
     const realDiff = Math.abs(lastLocalBlock - lastRemoteBlock);
 
-    if (realDiff > network.diff) {
+    if (realDiff > network.diff || lastLocalBlock === 0 || lastRemoteBlock === 0) {
         console.log(`Diff (${realDiff}) is more then diff from config`);
         if (!downtimeStartedAt.has(network.name)){
             downtimeStartedAt.set(network.name, Date.now());
@@ -49,6 +49,21 @@ async function validate(network) {
     }
 
     logger.info(`Checking ${network.name} is finished (diff ${realDiff}) localLastBlock = ${lastLocalBlock} lastRemoteBlock = ${lastRemoteBlock}`);
+}
+
+async function backoff (func, retries_number, delay = 1000) {
+    let result = 0;
+    try {
+        result = await func;
+    } catch (e) {
+        if (retries_number > 1) {
+            await wait(delay);
+            result = await backoff(func,retries_number-1, delay * 2);
+        } else {
+            logger.error(`Error retries did not help with error: ${e}`);
+        }
+    }
+    return result;
 }
 
 async function start () {
