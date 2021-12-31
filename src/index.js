@@ -10,6 +10,12 @@ const logger = bunyan.createLogger({ name: config.serverName });
 const downtimeStartedAt = new Map();
 const lockStorage = new Map();
 
+function wait(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 async function alert(text) {
     for (const id of config.alert.telegram.chatIds) {
         const url = `https://api.telegram.org/bot${config.alert.telegram.token}/sendMessage?chat_id=${id}&text=${text}`;
@@ -28,12 +34,12 @@ async function validate(network) {
     const web3Local = new Web3(network.localRPC);
     const web3Remote = new Web3(network.remoteRPC);
 
-    const lastLocalBlock = await web3Local.eth.getBlockNumber();
-    const lastRemoteBlock = await web3Remote.eth.getBlockNumber();
+    const lastLocalBlock = await backoff(web3Local.eth.getBlockNumber, 8);
+    const lastRemoteBlock = await backoff(web3Remote.eth.getBlockNumber, 8);
 
     const realDiff = Math.abs(lastLocalBlock - lastRemoteBlock);
 
-    if (realDiff > network.diff) {
+    if (realDiff > network.diff || lastLocalBlock === 0 || lastRemoteBlock === 0) {
         console.log(`Diff (${realDiff}) is more then diff from config`);
         if (!downtimeStartedAt.has(network.name)){
             downtimeStartedAt.set(network.name, Date.now());
@@ -49,6 +55,23 @@ async function validate(network) {
     }
 
     logger.info(`Checking ${network.name} is finished (diff ${realDiff}) localLastBlock = ${lastLocalBlock} lastRemoteBlock = ${lastRemoteBlock}`);
+}
+
+async function backoff (func, retries_number, delay = 1000) {
+    let actualDelay = delay;
+
+    for (let i = 0; i < retries_number; i++) {
+        logger.info(`Try to exec function with ${i+1}/${retries_number} retries and ${delay}ms delay`);
+        try {
+            return await func();
+        } catch (e) {
+            await wait(actualDelay);
+            actualDelay *= 2;
+            logger.error(`Error in backof execution: ${e}`);
+        }
+    }
+    logger.error(`Error retries did not help with error`);
+    return result;
 }
 
 async function start () {
