@@ -10,6 +10,11 @@ const logger = bunyan.createLogger({ name: config.serverName });
 const downtimeStartedAt = new Map();
 const lockStorage = new Map();
 
+const AuthType = {
+  NONE: 'NONE',
+  BASIC: 'BASIC',
+}
+
 function wait(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
@@ -30,9 +35,22 @@ async function alert(text) {
 async function validate(network) {
     const logger = network.logger;
     logger.info(`Checking ${network.name} is started`);
-
+    if (network.auth) {
+	if (network.auth.type === AuthType.BASIC) {
+            var options = {
+                headers: [{
+                   name: 'Authorization',
+                   value: `Basic ${Buffer.from(`${network.user.password}:${network.auth.password}`).toString('base64')}`,
+                }]
+            }
+        }
+    }
     const web3Local = new Web3(network.localRPC);
-    const web3Remote = new Web3(network.remoteRPC);
+    if (options) {
+        const web3Remote = new Web3(network.remoteRPC, options);
+    } else {
+        const web3Remote = new Web3(network.remoteRPC);
+    }
 
     const lastLocalBlock = await backoff(web3Local.eth.getBlockNumber, 8);
     const lastRemoteBlock = await backoff(web3Remote.eth.getBlockNumber, 8);
