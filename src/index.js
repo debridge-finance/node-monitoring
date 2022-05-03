@@ -44,7 +44,7 @@ async function validate(network) {
     const lastLocalBlock = await backoff(web3Local.eth.getBlockNumber, 8);
     const lastRemoteBlock = await backoff(web3Remote.eth.getBlockNumber, 8);
 
-    const realDiff = Math.abs(lastLocalBlock - lastRemoteBlock);
+    const realDiff = lastRemoteBlock - lastLocalBlock;
 
     if (realDiff > network.diff || lastLocalBlock === 0 || lastRemoteBlock === 0) {
         console.log(`Diff (${realDiff}) is more then diff from config`);
@@ -52,8 +52,7 @@ async function validate(network) {
             downtimeStartedAt.set(network.name, Date.now());
             logger.info(`Start downtime ${network.name} : ${downtimeStartedAt.get(network.name)}`);
         } else if (Date.now() - downtimeStartedAt.get(network.name) > config.maxDowntime) {
-            const message = `[${config.serverName}] ${network.name} ${network.localRPC} Parser is ${realDiff} behid. Parser block ${lastLocalBlock}; node block ${lastRemoteBlock}`;
-            logger.error(message);
+            const message = `[${config.serverName}] ${network.name} ${network.localRPC} Parser is ${realDiff} behid. Local block ${lastLocalBlock}; remote block ${lastRemoteBlock}`;
             await alert(message);
             downtimeStartedAt.delete(network.name);
         }
