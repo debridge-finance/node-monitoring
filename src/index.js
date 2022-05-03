@@ -27,12 +27,19 @@ async function alert(text) {
     }
 }
 
+function generateWeb3Instance(rpc) {
+    const provider = new Web3.providers.HttpProvider(rpc, {
+        keepAlive: false,
+    });
+    return new Web3(provider);
+}
+
 async function validate(network) {
     const logger = network.logger;
     logger.info(`Checking ${network.name} is started`);
 
-    const web3Local = new Web3(network.localRPC);
-    const web3Remote = new Web3(network.remoteRPC);
+    const web3Local = generateWeb3Instance(network.localRPC);
+    const web3Remote = generateWeb3Instance(network.remoteRPC);
 
     const lastLocalBlock = await backoff(web3Local.eth.getBlockNumber, 8);
     const lastRemoteBlock = await backoff(web3Remote.eth.getBlockNumber, 8);
