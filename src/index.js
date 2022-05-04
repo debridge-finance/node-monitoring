@@ -32,11 +32,19 @@ async function alert(text) {
     }
 }
 
+function generateWeb3Instance(rpc) {
+    const provider = new Web3.providers.HttpProvider(rpc, {
+        keepAlive: false,
+    });
+    return new Web3(provider);
+}
+
 async function validate(network) {
     const logger = network.logger;
     logger.info(`Checking ${network.name} is started`);
+
     if (network.auth) {
-	if (network.auth.type === AuthType.BASIC) {
+	      if (network.auth.type === AuthType.BASIC) {
             var options = {
                 headers: [{
                    name: 'Authorization',
@@ -45,17 +53,17 @@ async function validate(network) {
             }
         }
     }
-    const web3Local = new Web3(network.localRPC);
+    const web3Local = generateWeb3Instance(network.localRPC);
     if (options) {
-        const web3Remote = new Web3(network.remoteRPC, options);
+        const web3Remote = generateWeb3Instance(network.remoteRPC, options);
     } else {
-        const web3Remote = new Web3(network.remoteRPC);
+        const web3Remote = generateWeb3Instance(network.remoteRPC);
     }
 
     const lastLocalBlock = await backoff(web3Local.eth.getBlockNumber, 8);
     const lastRemoteBlock = await backoff(web3Remote.eth.getBlockNumber, 8);
 
-    const realDiff = Math.abs(lastLocalBlock - lastRemoteBlock);
+    const realDiff = lastRemoteBlock - lastLocalBlock;
 
     if (realDiff > network.diff || lastLocalBlock === 0 || lastRemoteBlock === 0) {
         console.log(`Diff (${realDiff}) is more then diff from config`);
@@ -63,8 +71,7 @@ async function validate(network) {
             downtimeStartedAt.set(network.name, Date.now());
             logger.info(`Start downtime ${network.name} : ${downtimeStartedAt.get(network.name)}`);
         } else if (Date.now() - downtimeStartedAt.get(network.name) > config.maxDowntime) {
-            const message = `[${config.serverName}] ${network.name} ${network.localRPC} Parser is ${realDiff} behid. Parser block ${lastLocalBlock}; node block ${lastRemoteBlock}`;
-            logger.error(message);
+            const message = `[${config.serverName}] ${network.name} ${network.localRPC} Parser is ${realDiff} behid. Local block ${lastLocalBlock}; remote block ${lastRemoteBlock}`;
             await alert(message);
             downtimeStartedAt.delete(network.name);
         }
