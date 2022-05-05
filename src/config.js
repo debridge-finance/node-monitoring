@@ -21,7 +21,12 @@ module.exports = {
             name: 'Test2',
             localRPC: '',
             remoteRPC: '',
-            diff: 0
+            diff: 0,
+            auth: {
+                type: 'BASIC',
+	            user: 'boris',
+                password: 'fsdsd23fsda'
+            }
         }
     ]
 }
