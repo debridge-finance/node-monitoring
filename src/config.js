@@ -24,7 +24,7 @@ module.exports = {
             diff: 0,
             auth: {
                 type: 'BASIC',
-	        user: 'boris',
+	            user: 'boris',
                 password: 'fsdsd23fsda'
             }
         }

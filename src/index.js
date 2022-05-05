@@ -32,9 +32,19 @@ async function alert(text) {
     }
 }
 
-function generateWeb3Instance(rpc) {
-    const provider = new Web3.providers.HttpProvider(rpc, {
+function generateWeb3Instance(network) {
+    let headers = undefined;
+    if (network.auth && network.auth.type === AuthType.BASIC) {
+        headers = [
+            {
+                name: 'Authorization',
+                value: `Basic ${Buffer.from(`${network.auth.user}:${network.auth.password}`).toString('base64')}`,
+            },
+        ]
+    }
+    const provider = new Web3.providers.HttpProvider(network.rpc, {
         keepAlive: false,
+        headers,
     });
     return new Web3(provider);
 }
@@ -43,22 +53,8 @@ async function validate(network) {
     const logger = network.logger;
     logger.info(`Checking ${network.name} is started`);
 
-    if (network.auth) {
-	      if (network.auth.type === AuthType.BASIC) {
-            var options = {
-                headers: [{
-                   name: 'Authorization',
-                   value: `Basic ${Buffer.from(`${network.user.password}:${network.auth.password}`).toString('base64')}`,
-                }]
-            }
-        }
-    }
-    const web3Local = generateWeb3Instance(network.localRPC);
-    if (options) {
-        const web3Remote = generateWeb3Instance(network.remoteRPC, options);
-    } else {
-        const web3Remote = generateWeb3Instance(network.remoteRPC);
-    }
+    const web3Local = generateWeb3Instance(network);
+    const web3Remote = generateWeb3Instance(network);
 
     const lastLocalBlock = await backoff(web3Local.eth.getBlockNumber, 8);
     const lastRemoteBlock = await backoff(web3Remote.eth.getBlockNumber, 8);
